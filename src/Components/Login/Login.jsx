@@ -1,5 +1,5 @@
 import { getAuth, sendPasswordResetEmail, signInWithEmailAndPassword } from "firebase/auth";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import app from "../Firebase/firebase.init";
 import { useRef, useState } from "react";
 import "./Login.css";
@@ -11,6 +11,10 @@ const Login = () => {
     const [success, setSuccess] = useState("");
     const [verifiedEmail, setVerifiedEmail] = useState("");
     const emailRef = useRef();
+
+    const navigate = useNavigate();
+    const location = useLocation();
+    const from = location?.state?.from?.pathname || "/";
 
     const auth = getAuth(app);
 
@@ -31,40 +35,45 @@ const Login = () => {
                 const loggedUser = result.user;
                 console.log(loggedUser);
                 setSuccess("Congrates! You Successfully Logged In Your Account");
-                if(loggedUser.emailVerified){
+                if (loggedUser.emailVerified) {
                     setVerifiedEmail("Your Email Address Is Verified");
+                    navigate(from, { replace: true })
                     return;
                 }
-                else{
+                else {
                     setVerifiedEmail("Please Verify Your Email Address");
+                    navigate(from, { replace: true })
                     return;
                 }
+
+
             })
+
             .catch(error => {
                 const errorMessage = error.message;
                 setError(errorMessage)
                 console.log(error.message);
             })
-            form.reset();
+        form.reset();
     }
 
     const handleResetPassword = (event) => {
         const email = emailRef.current.value;
         console.log(email);
-        if(!email){
+        if (!email) {
             toast("Please Enter Your Email Address");
             return;
         }
         sendPasswordResetEmail(auth, email)
-        .then(() => {
-            toast("Send The Verification. Please Check Your Email");
-        })
-        .catch((error) => {
-            const errorMessage = error.message;
-            console.log(errorMessage);
-            setError(errorMessage);
-            return;
-        })
+            .then(() => {
+                toast("Send The Verification. Please Check Your Email");
+            })
+            .catch((error) => {
+                const errorMessage = error.message;
+                console.log(errorMessage);
+                setError(errorMessage);
+                return;
+            })
 
     }
     return (
